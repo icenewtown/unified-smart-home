@@ -2,7 +2,7 @@
 # Daily task: rebuild a sanitized publish copy from the source project, commit and push.
 param(
     [string]$SourceRoot = 'E:\smart_home',
-    [string]$RepoUrl = 'https://github.com/icenewtown/unified-smart-home.git',
+    [string]$RepoUrl = 'git@github.com:icenewtown/unified-smart-home.git',
     [switch]$ForcePush
 )
 $ErrorActionPreference = 'Continue'
@@ -73,25 +73,28 @@ try {
         exit 1
     }
 
-    $ghExe = ''
-    $ghCmd = Get-Command gh -ErrorAction SilentlyContinue
-    if ($ghCmd) { $ghExe = $ghCmd.Source }
-    if (-not $ghExe -and (Test-Path -LiteralPath 'C:\Program Files\GitHub CLI\gh.exe')) {
-        $ghExe = 'C:\Program Files\GitHub CLI\gh.exe'
+    $authArgs = @()
+    if ($RepoUrl.StartsWith('https://')) {
+        $ghExe = ''
+        $ghCmd = Get-Command gh -ErrorAction SilentlyContinue
+        if ($ghCmd) { $ghExe = $ghCmd.Source }
+        if (-not $ghExe -and (Test-Path -LiteralPath 'C:\Program Files\GitHub CLI\gh.exe')) {
+            $ghExe = 'C:\Program Files\GitHub CLI\gh.exe'
+        }
+        $token = ''
+        if ($ghExe) {
+            $token = (& $ghExe auth token 2>$null).Trim()
+        }
+        if (-not $token -and (Test-Path -LiteralPath $TokenFile)) {
+            $token = (Get-Content -Raw -LiteralPath $TokenFile).Trim()
+        }
+        if (-not $token) {
+            Write-Log 'ERROR: no token available (gh auth or token file) for HTTPS push'
+            exit 1
+        }
+        $b64 = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$IdentityName`:$token"))
+        $authArgs = @('-c','credential.helper=','-c',"http.extraheader=Authorization: Basic $b64")
     }
-    $token = ''
-    if ($ghExe) {
-        $token = (& $ghExe auth token 2>$null).Trim()
-    }
-    if (-not $token -and (Test-Path -LiteralPath $TokenFile)) {
-        $token = (Get-Content -Raw -LiteralPath $TokenFile).Trim()
-    }
-    if (-not $token) {
-        Write-Log 'ERROR: no token available (gh auth or token file)'
-        exit 1
-    }
-    $b64 = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$IdentityName`:$token"))
-    $authArgs = @('-c','credential.helper=','-c',"http.extraheader=Authorization: Basic $b64")
 
     if (-not (Test-Path -LiteralPath (Join-Path $PublishGit '.git'))) {
         git -C $PublishGit init -b main 2>$null | Out-Null
@@ -146,5 +149,6 @@ try {
     Write-Log ('ERROR: {0}' -f $_.Exception.Message)
     exit 1
 }
+
 
 

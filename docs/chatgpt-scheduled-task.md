@@ -21,7 +21,7 @@
 执行步骤：
 1. 进入项目目录 E:\smart_home，运行 git status 检查未提交改动。
 2. 若有本地改动：先检查并排除敏感信息，然后以中文提交信息提交到 main。
-3. 运行 E:\smart_home\scripts\sync-github.ps1：该脚本会重建清理后的发布副本、扫描敏感信息、拉取并推送到 https://github.com/icenewtown/unified-smart-home.git。
+3. 运行 E:\smart_home\scripts\sync-github.ps1：该脚本会重建清理后的发布副本、扫描敏感信息、拉取并推送到 git@github.com:icenewtown/unified-smart-home.git。
 4. 查看 %LOCALAPPDATA%\SmartHomePublish\sync.log 与脚本退出码：
    - 成功：用 1-2 句话总结本次推送内容（或说明无改动）。
    - 失败或 ABORT：粘贴关键错误并给出原因判断，不要盲目重试。
@@ -60,4 +60,5 @@
 - 与 Windows 计划任务 `SmartHomeGitHubSync`（每天 03:00）功能重复：建议启用 ChatGPT 任务后，在“任务计划程序”中暂停或删除旧任务，或把两者时间错开，避免重复推送。
 - 删除本对话会自动暂停关联任务；任务可在 Scheduled 页面暂停、恢复或删除。
 - 令牌文件不入库；若轮换令牌，请更新 `%LOCALAPPDATA%\SmartHomePublish\gh-token.txt`。
+
 
