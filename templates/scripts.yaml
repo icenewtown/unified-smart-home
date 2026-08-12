@@ -1,0 +1,6 @@
+shutdown_all_ac:
+  alias: 全屋关空调
+  sequence:
+    - service: climate.turn_off
+      target:
+        entity_id: climate.kong_diao_0601

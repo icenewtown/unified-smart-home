@@ -1,0 +1,283 @@
+title: 爸妈模式
+views:
+  - title: 首页
+    path: home
+    cards:
+      - type: markdown
+        content: |-
+          ### 简单操作
+          按大按钮就行，也可以直接喊：小爱同学，打开空调
+      - type: thermostat
+        entity: climate.kong_diao_0601
+        name: 空调
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: 打开空调
+            icon: mdi:power
+            styles:
+              card:
+                - height: 130px
+                - background: "#e8f5e9"
+              icon:
+                - width: 60px
+                - color: green
+              name:
+                - font-size: 30px
+                - font-weight: bold
+            tap_action:
+              action: perform-action
+              perform_action: climate.turn_on
+              target:
+                entity_id: climate.kong_diao_0601
+          - type: button
+            name: 关闭空调
+            icon: mdi:power-off
+            styles:
+              card:
+                - height: 130px
+                - background: "#ffebee"
+              icon:
+                - width: 60px
+                - color: red
+              name:
+                - font-size: 30px
+                - font-weight: bold
+            tap_action:
+              action: perform-action
+              perform_action: climate.turn_off
+              target:
+                entity_id: climate.kong_diao_0601
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: 26度
+            icon: mdi:thermometer
+            styles:
+              card:
+                - height: 110px
+              icon:
+                - width: 48px
+              name:
+                - font-size: 26px
+            tap_action:
+              action: perform-action
+              perform_action: climate.set_temperature
+              target:
+                entity_id: climate.kong_diao_0601
+              data:
+                temperature: 26
+          - type: button
+            name: 24度
+            icon: mdi:thermometer
+            styles:
+              card:
+                - height: 110px
+              icon:
+                - width: 48px
+              name:
+                - font-size: 26px
+            tap_action:
+              action: perform-action
+              perform_action: climate.set_temperature
+              target:
+                entity_id: climate.kong_diao_0601
+              data:
+                temperature: 24
+          - type: button
+            name: 28度
+            icon: mdi:thermometer
+            styles:
+              card:
+                - height: 110px
+              icon:
+                - width: 48px
+              name:
+                - font-size: 26px
+            tap_action:
+              action: perform-action
+              perform_action: climate.set_temperature
+              target:
+                entity_id: climate.kong_diao_0601
+              data:
+                temperature: 28
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: 制冷
+            icon: mdi:snowflake
+            styles:
+              card:
+                - height: 100px
+              icon:
+                - width: 44px
+              name:
+                - font-size: 24px
+            tap_action:
+              action: perform-action
+              perform_action: climate.set_hvac_mode
+              target:
+                entity_id: climate.kong_diao_0601
+              data:
+                hvac_mode: cool
+          - type: button
+            name: 制热
+            icon: mdi:fire
+            styles:
+              card:
+                - height: 100px
+              icon:
+                - width: 44px
+              name:
+                - font-size: 24px
+            tap_action:
+              action: perform-action
+              perform_action: climate.set_hvac_mode
+              target:
+                entity_id: climate.kong_diao_0601
+              data:
+                hvac_mode: heat
+          - type: button
+            name: 自动
+            icon: mdi:autorenew
+            styles:
+              card:
+                - height: 100px
+              icon:
+                - width: 44px
+              name:
+                - font-size: 24px
+            tap_action:
+              action: perform-action
+              perform_action: climate.set_hvac_mode
+              target:
+                entity_id: climate.kong_diao_0601
+              data:
+                hvac_mode: auto
+      - type: button
+        name: 全部关空调
+        icon: mdi:air-conditioner-off
+        styles:
+          card:
+            - height: 120px
+            - background: "#ffcdd2"
+          icon:
+            - width: 60px
+            - color: red
+          name:
+            - font-size: 30px
+            - font-weight: bold
+        tap_action:
+          action: perform-action
+          perform_action: script.shutdown_all_ac
+      - type: markdown
+        content: |-
+          ### 洗衣机
+      - type: horizontal-stack
+        cards:
+          - type: button
+            entity: switch.gun_tong_xi_yi_ji_dian_yuan
+            name: 洗衣机电源
+            icon: mdi:washing-machine
+            show_state: true
+            styles:
+              card:
+                - height: 130px
+              icon:
+                - width: 60px
+              name:
+                - font-size: 26px
+                - font-weight: bold
+            tap_action:
+              action: toggle
+          - type: button
+            entity: switch.gun_tong_xi_yi_ji_qi_ting
+            name: 启动 / 停止
+            icon: mdi:play-pause
+            show_state: true
+            styles:
+              card:
+                - height: 130px
+              icon:
+                - width: 60px
+              name:
+                - font-size: 26px
+                - font-weight: bold
+            tap_action:
+              action: toggle
+      - type: entities
+        title: 洗衣机状态
+        entities:
+          - entity: sensor.gun_tong_xi_yi_ji_yun_xing_zhuang_tai
+            name: 运行状态
+          - entity: sensor.gun_tong_xi_yi_ji_sheng_yu_shi_jian
+            name: 剩余时间
+          - entity: sensor.gun_tong_xi_yi_ji_jin_du
+            name: 进度
+      - type: markdown
+        content: |-
+          ### 电视
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: 打开电视
+            icon: mdi:television
+            styles:
+              card:
+                - height: 110px
+              icon:
+                - width: 52px
+              name:
+                - font-size: 26px
+            tap_action:
+              action: perform-action
+              perform_action: media_player.turn_on
+              target:
+                entity_id: media_player.xiaomi_v1_81fb_play_control
+          - type: button
+            name: 关闭电视
+            icon: mdi:television-off
+            styles:
+              card:
+                - height: 110px
+              icon:
+                - width: 52px
+              name:
+                - font-size: 26px
+            tap_action:
+              action: perform-action
+              perform_action: media_player.turn_off
+              target:
+                entity_id: media_player.xiaomi_v1_81fb_play_control
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: 音量+
+            icon: mdi:volume-high
+            styles:
+              card:
+                - height: 100px
+              icon:
+                - width: 44px
+              name:
+                - font-size: 24px
+            tap_action:
+              action: perform-action
+              perform_action: media_player.volume_up
+              target:
+                entity_id: media_player.xiaomi_v1_81fb_play_control
+          - type: button
+            name: 音量-
+            icon: mdi:volume-low
+            styles:
+              card:
+                - height: 100px
+              icon:
+                - width: 44px
+              name:
+                - font-size: 24px
+            tap_action:
+              action: perform-action
+              perform_action: media_player.volume_down
+              target:
+                entity_id: media_player.xiaomi_v1_81fb_play_control

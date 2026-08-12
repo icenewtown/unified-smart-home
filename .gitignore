@@ -1,0 +1,19 @@
+# Home Assistant 运行时配置与数据（由 HA 在服务器上生成，不入库）
+/config/*
+!/config/.gitkeep
+
+# 敏感信息
+secrets.yaml
+*.secret
+.env
+
+# 备份与归档
+backups/
+*.zip
+*.tar.gz
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

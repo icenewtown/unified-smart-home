@@ -1,0 +1,8 @@
+# 统一仪表盘注册（放在 configuration.yaml）
+lovelace:
+  dashboards:
+    unified-dashboard:
+      mode: yaml
+      filename: lovelace/unified.yaml
+      title: 我的家
+      icon: mdi:home-assistant

@@ -1,0 +1,93 @@
+title: 我的家
+views:
+  - title: 首页
+    path: home
+    cards:
+      - type: markdown
+        content: |-
+          # 🏠 我的家
+          统一控制小米 / 美的 / 格力设备
+      - type: thermostat
+        entity: climate.kong_diao_0601
+        name: 格力空调
+      - type: entities
+        title: 空调功能
+        entities:
+          - entity: switch.kong_diao_0601
+            name: 面板灯
+          - entity: switch.kong_diao_0601_2
+            name: 静音
+          - entity: switch.kong_diao_0601_3
+            name: 新风
+          - entity: switch.kong_diao_0601_4
+            name: XFan 干燥
+          - entity: switch.kong_diao_0601_5
+            name: 健康模式
+      - type: button
+        entity: script.shutdown_all_ac
+        name: 全屋关空调
+        icon: mdi:air-conditioner-off
+        show_state: false
+      - type: entities
+        title: 美的滚筒洗衣机
+        entities:
+          - entity: switch.gun_tong_xi_yi_ji_dian_yuan
+            name: 电源
+          - entity: select.gun_tong_xi_yi_ji_cheng_xu
+            name: 程序
+          - entity: switch.gun_tong_xi_yi_ji_qi_ting
+            name: 启停
+          - entity: sensor.gun_tong_xi_yi_ji_yun_xing_zhuang_tai
+            name: 运行状态
+          - entity: sensor.gun_tong_xi_yi_ji_jin_du
+            name: 进度
+          - entity: sensor.gun_tong_xi_yi_ji_sheng_yu_shi_jian
+            name: 剩余时间
+          - entity: select.gun_tong_xi_yi_ji_wen_du
+            name: 温度
+          - entity: select.gun_tong_xi_yi_ji_zhuan_su
+            name: 转速
+          - entity: select.gun_tong_xi_yi_ji_shui_wei
+            name: 水位
+          - entity: select.gun_tong_xi_yi_ji_piao_xi_ci_shu
+            name: 漂洗次数
+          - entity: switch.gun_tong_xi_yi_ji_feng_gan
+            name: 风干
+          - entity: lock.gun_tong_xi_yi_ji_tong_suo
+            name: 童锁
+      - type: media-control
+        entity: media_player.xiaomi_v1_81fb_play_control
+      - type: entities
+        title: 客厅小米电视
+        entities:
+          - entity: number.xiaomi_v1_81fb_volume
+            name: 音量
+      - type: media-control
+        entity: media_player.xiaomi_l05b_1935_play_control
+      - type: entities
+        title: 小爱音箱 Play
+        entities:
+          - entity: switch.xiaomi_l05b_1935_switch_status
+            name: 闹钟开关
+          - entity: button.xiaomi_l05b_1935_wake_up
+            name: 唤醒
+      - type: entities
+        title: 米家温湿度计 3
+        entities:
+          - sensor.miaomiaoce_t9_2479_temperature
+          - sensor.miaomiaoce_t9_2479_relative_humidity
+          - sensor.miaomiaoce_t9_2479_battery_level
+      - type: entities
+        title: 小米路由器
+        entities:
+          - entity: sensor.xiaomi_r4av2_fdeb_connected_device_number
+            name: 连接设备数
+          - entity: sensor.xiaomi_r4av2_fdeb_download_speed
+            name: 下载速度
+          - entity: sensor.xiaomi_r4av2_fdeb_upload_speed
+            name: 上传速度
+      - type: entities
+        title: 小米手环 10 NFC
+        entities:
+          - sensor.miwear_o66nfc_aecd_battery_level
+          - sensor.miwear_o66nfc_aecd_charging_state
