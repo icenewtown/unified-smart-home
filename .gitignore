@@ -17,3 +17,6 @@ backups/
 Thumbs.db
 .idea/
 .vscode/
+
+# 本地账号信息（不入库）
+accounts.private.md
