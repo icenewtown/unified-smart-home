@@ -281,3 +281,56 @@ views:
               perform_action: media_player.volume_down
               target:
                 entity_id: media_player.xiaomi_v1_81fb_play_control
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: 首页
+            icon: mdi:home
+            styles:
+              card:
+                - height: 100px
+              icon:
+                - width: 44px
+              name:
+                - font-size: 24px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: home
+          - type: button
+            name: 返回
+            icon: mdi:arrow-left
+            styles:
+              card:
+                - height: 100px
+              icon:
+                - width: 44px
+              name:
+                - font-size: 24px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: back
+          - type: button
+            name: 播放暂停
+            icon: mdi:play-pause
+            styles:
+              card:
+                - height: 100px
+              icon:
+                - width: 44px
+              name:
+                - font-size: 24px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: play_pause

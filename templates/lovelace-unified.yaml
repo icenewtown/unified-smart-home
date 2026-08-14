@@ -55,6 +55,23 @@ views:
             name: 风干
           - entity: lock.gun_tong_xi_yi_ji_tong_suo
             name: 童锁
+      - type: glance
+        title: 米家温湿度计3
+        entities:
+          - entity: sensor.miaomiaoce_t9_2479_temperature
+            name: 温度
+          - entity: sensor.miaomiaoce_t9_2479_relative_humidity
+            name: 湿度
+          - entity: sensor.miaomiaoce_t9_2479_battery_level
+            name: 电量
+      - type: history-graph
+        title: 温湿度 24 小时趋势
+        hours_to_show: 24
+        entities:
+          - entity: sensor.miaomiaoce_t9_2479_temperature
+            name: 温度
+          - entity: sensor.miaomiaoce_t9_2479_relative_humidity
+            name: 湿度
       - type: media-control
         entity: media_player.xiaomi_v1_81fb_play_control
       - type: entities
@@ -62,6 +79,273 @@ views:
         entities:
           - entity: number.xiaomi_v1_81fb_volume
             name: 音量
+          - entity: text.xiaomi_v1_81fb_post
+            name: 发送文字
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: 电源
+            icon: mdi:power
+            styles:
+              card:
+                - height: 70px
+              icon:
+                - width: 34px
+              name:
+                - font-size: 17px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: power
+          - type: button
+            name: 首页
+            icon: mdi:home
+            styles:
+              card:
+                - height: 70px
+              icon:
+                - width: 34px
+              name:
+                - font-size: 17px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: home
+          - type: button
+            name: 返回
+            icon: mdi:arrow-left
+            styles:
+              card:
+                - height: 70px
+              icon:
+                - width: 34px
+              name:
+                - font-size: 17px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: back
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: 菜单
+            icon: mdi:menu
+            styles:
+              card:
+                - height: 70px
+              icon:
+                - width: 34px
+              name:
+                - font-size: 17px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: menu
+          - type: button
+            name: 设置
+            icon: mdi:cog
+            styles:
+              card:
+                - height: 70px
+              icon:
+                - width: 34px
+              name:
+                - font-size: 17px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: settings
+          - type: button
+            name: 播放暂停
+            icon: mdi:play-pause
+            styles:
+              card:
+                - height: 70px
+              icon:
+                - width: 34px
+              name:
+                - font-size: 17px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: play_pause
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: 上
+            icon: mdi:chevron-up
+            styles:
+              card:
+                - height: 70px
+              icon:
+                - width: 34px
+              name:
+                - font-size: 17px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: up
+          - type: button
+            name: OK
+            icon: mdi:checkbox-blank-circle
+            styles:
+              card:
+                - height: 70px
+              icon:
+                - width: 34px
+              name:
+                - font-size: 17px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: enter
+          - type: button
+            name: 下
+            icon: mdi:chevron-down
+            styles:
+              card:
+                - height: 70px
+              icon:
+                - width: 34px
+              name:
+                - font-size: 17px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: down
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: 左
+            icon: mdi:chevron-left
+            styles:
+              card:
+                - height: 70px
+              icon:
+                - width: 34px
+              name:
+                - font-size: 17px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: left
+          - type: button
+            name: 音量-
+            icon: mdi:volume-low
+            styles:
+              card:
+                - height: 70px
+              icon:
+                - width: 34px
+              name:
+                - font-size: 17px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: volumedown
+          - type: button
+            name: 右
+            icon: mdi:chevron-right
+            styles:
+              card:
+                - height: 70px
+              icon:
+                - width: 34px
+              name:
+                - font-size: 17px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: right
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: 音量+
+            icon: mdi:volume-high
+            styles:
+              card:
+                - height: 70px
+              icon:
+                - width: 34px
+              name:
+                - font-size: 17px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: volumeup
+          - type: button
+            name: 播放
+            icon: mdi:play
+            styles:
+              card:
+                - height: 70px
+              icon:
+                - width: 34px
+              name:
+                - font-size: 17px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: play
+          - type: button
+            name: 暂停
+            icon: mdi:pause
+            styles:
+              card:
+                - height: 70px
+              icon:
+                - width: 34px
+              name:
+                - font-size: 17px
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.xiaomi_v1_81fb_keycodes
+              data:
+                option: pause
       - type: media-control
         entity: media_player.xiaomi_l05b_1935_play_control
       - type: entities
@@ -71,12 +355,10 @@ views:
             name: 闹钟开关
           - entity: button.xiaomi_l05b_1935_wake_up
             name: 唤醒
-      - type: entities
-        title: 米家温湿度计 3
-        entities:
-          - sensor.miaomiaoce_t9_2479_temperature
-          - sensor.miaomiaoce_t9_2479_relative_humidity
-          - sensor.miaomiaoce_t9_2479_battery_level
+          - entity: button.xiaomi_l05b_1935_play_music
+            name: 播放音乐
+          - entity: text.xiaomi_l05b_1935_execute_text_directive
+            name: 对小爱说
       - type: entities
         title: 小米路由器
         entities:
@@ -86,8 +368,3 @@ views:
             name: 下载速度
           - entity: sensor.xiaomi_r4av2_fdeb_upload_speed
             name: 上传速度
-      - type: entities
-        title: 小米手环 10 NFC
-        entities:
-          - sensor.miwear_o66nfc_aecd_battery_level
-          - sensor.miwear_o66nfc_aecd_charging_state

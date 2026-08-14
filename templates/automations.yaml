@@ -1,0 +1,172 @@
+# ============================================================
+# 小爱音箱玩法基础包
+# 1) 洗衣机完成提醒  2) 早间播报  3) 晚安模式  4) 语音离家/回家
+# 说明：
+# - conversation 传感器轮询小米云对话记录（约 5 秒），状态值为用户对小爱说的最后一句话
+# - 语音触发为关键词匹配，若误触发可调整各自动化 condition 中的关键词列表
+# ============================================================
+
+- id: washer_running_flag
+  alias: 洗衣机运行标记
+  description: 洗衣机进入运行/暂停状态时打开标记，供完成提醒判断是否真正洗过
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: sensor.gun_tong_xi_yi_ji_yun_xing_zhuang_tai
+      to:
+        - start
+        - pause
+  condition: []
+  action:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.washer_running
+
+- id: washer_done_alert
+  alias: 洗衣机完成提醒
+  description: 洗衣机真正运行超过 5 分钟后回到空闲/待机，才播报完成
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: sensor.gun_tong_xi_yi_ji_yun_xing_zhuang_tai
+  condition:
+    - condition: template
+      value_template: >-
+        {{ trigger.from_state is not none
+           and trigger.from_state.state not in ['unavailable', 'unknown', '']
+           and trigger.to_state.state in ['idle', 'standby']
+           and states('input_boolean.washer_running') == 'on'
+           and (now() - states.input_boolean.washer_running.last_changed).total_seconds() > 300 }}
+  action:
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.washer_running
+    - service: text.set_value
+      target:
+        entity_id: text.xiaomi_l05b_1935_play_text
+      data:
+        value: 衣服洗好了，请及时晾晒
+    - if:
+        - condition: template
+          value_template: "{{ states('device_tracker.xiao_mi_shou_ji_ha') not in ['unknown', 'unavailable', ''] }}"
+      then:
+        - service: notify.xiao_mi_shou_ji_ha
+          data:
+            title: 洗衣机
+            message: 衣服洗好了，请及时晾晒
+- id: morning_briefing
+  alias: 早间播报
+  description: 每天早上 7:30，用小爱音箱播报室内温湿度与今日天气
+  mode: single
+  trigger:
+    - platform: time
+      at: "07:30:00"
+  action:
+    - service: weather.get_forecasts
+      data:
+        type: daily
+      target:
+        entity_id: weather.forecast_wo_de_jia
+      response_variable: weather_forecast
+    - service: text.set_value
+      target:
+        entity_id: text.xiaomi_l05b_1935_play_text
+      data:
+        value: >-
+          {% set wf = weather_forecast if weather_forecast is defined else {} %}
+          {% set fc = wf.get('weather.forecast_wo_de_jia', {}).get('forecast') or [] %}
+          {% set today = fc[0] if fc else {} %}
+          {% set t = states('sensor.miaomiaoce_t9_2479_temperature') %}
+          {% set h = states('sensor.miaomiaoce_t9_2479_relative_humidity') %}
+          早上好。现在室内温度 {{ t if t not in ['unknown', 'unavailable'] else '--' }} 度，湿度 {{ h if h not in ['unknown', 'unavailable'] else '--' }}%。
+          今天最高气温 {{ today.temperature | default('--') }} 度，最低 {{ today.templow | default('--') }} 度，降雨概率 {{ today.precipitation_probability | default('--') }}%。祝您今天心情愉快。
+- id: goodnight_mode
+  alias: 晚安模式
+  description: 每天 23:00 或对小爱说“晚安”时，关闭电视并语音道晚安
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: time
+      at: "23:00:00"
+    - platform: state
+      entity_id: sensor.xiaomi_l05b_1935_conversation
+  condition:
+    - condition: template
+      value_template: >-
+        {{ trigger.platform == 'time'
+           or (trigger.to_state is defined and trigger.to_state and '晚安' in trigger.to_state.state) }}
+    - condition: template
+      value_template: >-
+        {% set lt = state_attr('automation.goodnight_mode', 'last_triggered') %}
+        {{ lt is none or (now() - lt).total_seconds() > 600 }}
+  action:
+    - service: media_player.turn_off
+      target:
+        entity_id: media_player.xiaomi_v1_81fb_play_control
+    - service: media_player.media_pause
+      target:
+        entity_id: media_player.xiaomi_l05b_1935_play_control
+    - service: text.set_value
+      target:
+        entity_id: text.xiaomi_l05b_1935_play_text
+      data:
+        value: 晚安，好梦
+
+- id: voice_leave_home
+  alias: 语音离家模式
+  description: 对小爱说“我出门了/我去上班了”等，关闭全屋空调与电视
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: sensor.xiaomi_l05b_1935_conversation
+  condition:
+    - condition: template
+      value_template: >-
+        {{ trigger.to_state is defined and trigger.to_state
+           and ('我出门了' in trigger.to_state.state
+                or '我走了' in trigger.to_state.state
+                or '我去上班了' in trigger.to_state.state
+                or '我上班去了' in trigger.to_state.state) }}
+    - condition: template
+      value_template: >-
+        {% set lt = state_attr('automation.voice_leave_home', 'last_triggered') %}
+        {{ lt is none or (now() - lt).total_seconds() > 300 }}
+  action:
+    - service: script.shutdown_all_ac
+    - service: media_player.turn_off
+      target:
+        entity_id: media_player.xiaomi_v1_81fb_play_control
+    - service: text.set_value
+      target:
+        entity_id: text.xiaomi_l05b_1935_play_text
+      data:
+        value: 好的，空调和电视已关闭，一路平安
+
+- id: voice_return_home
+  alias: 语音回家播报
+  description: 对小爱说“我回来了/我到家了”等，语音欢迎回家
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: sensor.xiaomi_l05b_1935_conversation
+  condition:
+    - condition: template
+      value_template: >-
+        {{ trigger.to_state is defined and trigger.to_state
+           and ('我回来了' in trigger.to_state.state
+                or '我到家了' in trigger.to_state.state
+                or '我下班了' in trigger.to_state.state) }}
+    - condition: template
+      value_template: >-
+        {% set lt = state_attr('automation.voice_return_home', 'last_triggered') %}
+        {{ lt is none or (now() - lt).total_seconds() > 300 }}
+  action:
+    - service: text.set_value
+      target:
+        entity_id: text.xiaomi_l05b_1935_play_text
+      data:
+        value: 欢迎回家，辛苦了
