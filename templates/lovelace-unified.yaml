@@ -23,6 +23,8 @@ views:
             name: XFan 干燥
           - entity: switch.kong_diao_0601_5
             name: 健康模式
+          - entity: input_boolean.ac_auto_control
+            name: 自动温控
       - type: button
         entity: script.shutdown_all_ac
         name: 全屋关空调

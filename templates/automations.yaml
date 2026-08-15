@@ -170,3 +170,242 @@
         entity_id: text.xiaomi_l05b_1935_play_text
       data:
         value: 欢迎回家，辛苦了
+
+# ================= 第一批扩展（手机围栏/自动温控/故障提醒/语音查询/忘关提醒） =================
+
+- id: presence_leave_home
+  alias: 手机离家自动收尾
+  description: 手机离开家区域后，自动关闭空调与电视（注意：目前仅以你的手机作为离家判断，若爸妈在家而你出门会触发，建议后续加入爸妈手机后再改为全员离家才触发）
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: device_tracker.xiao_mi_shou_ji_ha
+      to: not_home
+  condition:
+    - condition: template
+      value_template: "{{ trigger.from_state is not none and trigger.from_state.state == 'home' }}"
+  action:
+    - service: script.shutdown_all_ac
+    - service: media_player.turn_off
+      target:
+        entity_id: media_player.xiaomi_v1_81fb_play_control
+
+- id: presence_return_home
+  alias: 手机回家欢迎播报
+  description: 手机进入家区域后，小爱播报欢迎
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: device_tracker.xiao_mi_shou_ji_ha
+      to: home
+  condition:
+    - condition: template
+      value_template: "{{ trigger.from_state is not none and trigger.from_state.state == 'not_home' }}"
+    - condition: template
+      value_template: >-
+        {% set lt = state_attr('automation.presence_return_home', 'last_triggered') %}
+        {{ lt is none or (now() - lt).total_seconds() > 300 }}
+  action:
+    - service: text.set_value
+      target:
+        entity_id: text.xiaomi_l05b_1935_play_text
+      data:
+        value: 欢迎回家
+
+- id: ac_auto_control
+  alias: 空调自动温控
+  description: 自动温控开关开启时，室内 ≥29°C 且空调未开则自动开 26°C 制冷；≤24°C 且空调开着则关闭
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: sensor.miaomiaoce_t9_2479_temperature
+    - platform: state
+      entity_id: input_boolean.ac_auto_control
+      to: "on"
+  condition:
+    - condition: state
+      entity_id: input_boolean.ac_auto_control
+      state: "on"
+    - condition: template
+      value_template: "{{ states('climate.kong_diao_0601') not in ['unavailable', 'unknown', ''] }}"
+  action:
+    - choose:
+        - conditions:
+            - condition: numeric_state
+              entity_id: sensor.miaomiaoce_t9_2479_temperature
+              above: 28.9
+            - condition: state
+              entity_id: climate.kong_diao_0601
+              state: "off"
+          sequence:
+            - service: climate.turn_on
+              target:
+                entity_id: climate.kong_diao_0601
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.kong_diao_0601
+              data:
+                hvac_mode: cool
+            - service: climate.set_temperature
+              target:
+                entity_id: climate.kong_diao_0601
+              data:
+                temperature: 26
+        - conditions:
+            - condition: numeric_state
+              entity_id: sensor.miaomiaoce_t9_2479_temperature
+              below: 24.1
+            - condition: template
+              value_template: "{{ states('climate.kong_diao_0601') != 'off' }}"
+          sequence:
+            - service: climate.turn_off
+              target:
+                entity_id: climate.kong_diao_0601
+
+- id: washer_error_alert
+  alias: 洗衣机故障提醒
+  description: 洗衣机错误代码非 0 时，播报并推送
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: sensor.gun_tong_xi_yi_ji_cuo_wu_dai_ma
+  condition:
+    - condition: template
+      value_template: "{{ trigger.to_state.state not in ['0', 'unknown', 'unavailable', ''] }}"
+  action:
+    - service: text.set_value
+      target:
+        entity_id: text.xiaomi_l05b_1935_play_text
+      data:
+        value: 洗衣机出现故障，请检查一下
+    - if:
+        - condition: template
+          value_template: "{{ states('device_tracker.xiao_mi_shou_ji_ha') not in ['unknown', 'unavailable', ''] }}"
+      then:
+        - service: notify.xiao_mi_shou_ji_ha
+          data:
+            title: 洗衣机故障
+            message: 洗衣机错误代码 {{ trigger.to_state.state }}，请检查
+
+- id: washer_detergent_alert
+  alias: 洗衣液不足提醒
+  description: 洗衣液存量传感器变 on 时提醒（若语义相反请告知调整）
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.gun_tong_xi_yi_ji_xi_yi_ye_cun_liang
+      to: "on"
+  action:
+    - service: text.set_value
+      target:
+        entity_id: text.xiaomi_l05b_1935_play_text
+      data:
+        value: 洗衣液快用完了，记得添加
+    - if:
+        - condition: template
+          value_template: "{{ states('device_tracker.xiao_mi_shou_ji_ha') not in ['unknown', 'unavailable', ''] }}"
+      then:
+        - service: notify.xiao_mi_shou_ji_ha
+          data:
+            title: 洗衣液不足
+            message: 洗衣机洗衣液快用完了，记得添加
+
+- id: voice_temp_report
+  alias: 语音报温度
+  description: 对小爱说“报告温度/温度多少”等，播报室内温湿度
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: sensor.xiaomi_l05b_1935_conversation
+  condition:
+    - condition: template
+      value_template: >-
+        {{ trigger.to_state is defined and trigger.to_state
+           and ('报告温度' in trigger.to_state.state
+                or '温度多少' in trigger.to_state.state
+                or '现在多少度' in trigger.to_state.state
+                or '室内多少度' in trigger.to_state.state) }}
+    - condition: template
+      value_template: >-
+        {% set lt = state_attr('automation.voice_temp_report', 'last_triggered') %}
+        {{ lt is none or (now() - lt).total_seconds() > 300 }}
+  action:
+    - service: text.set_value
+      target:
+        entity_id: text.xiaomi_l05b_1935_play_text
+      data:
+        value: >-
+          {% set t = states('sensor.miaomiaoce_t9_2479_temperature') %}
+          {% set h = states('sensor.miaomiaoce_t9_2479_relative_humidity') %}
+          现在室内温度 {{ t if t not in ['unknown', 'unavailable'] else '--' }} 度，湿度 {{ h if h not in ['unknown', 'unavailable'] else '--' }}%。
+
+- id: voice_washer_status
+  alias: 语音查洗衣机
+  description: 对小爱说“洗衣机还有多久/好了没”等，播报运行状态与剩余时间
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: sensor.xiaomi_l05b_1935_conversation
+  condition:
+    - condition: template
+      value_template: >-
+        {{ trigger.to_state is defined and trigger.to_state
+           and '洗衣机' in trigger.to_state.state
+           and ('多久' in trigger.to_state.state or '多长' in trigger.to_state.state or '好了' in trigger.to_state.state) }}
+    - condition: template
+      value_template: >-
+        {% set lt = state_attr('automation.voice_washer_status', 'last_triggered') %}
+        {{ lt is none or (now() - lt).total_seconds() > 300 }}
+  action:
+    - service: text.set_value
+      target:
+        entity_id: text.xiaomi_l05b_1935_play_text
+      data:
+        value: >-
+          {% set st = states('sensor.gun_tong_xi_yi_ji_yun_xing_zhuang_tai') %}
+          {% set rm = states('sensor.gun_tong_xi_yi_ji_sheng_yu_shi_jian') %}
+          {% if st in ['start', 'pause'] and rm not in ['unknown', 'unavailable', ''] %}
+            洗衣机正在运行，预计还剩 {{ rm }} 分钟。
+          {% elif st in ['start', 'pause'] %}
+            洗衣机正在运行。
+          {% else %}
+            洗衣机当前没有在运行。
+          {% endif %}
+
+- id: late_night_reminder
+  alias: 深夜忘关提醒
+  description: 每天 23:30，电视还开着则语音提醒；空调还开着则推送手机
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: time
+      at: "23:30:00"
+  action:
+    - if:
+        - condition: template
+          value_template: "{{ states('media_player.xiaomi_v1_81fb_play_control') not in ['off', 'unavailable', 'unknown', ''] }}"
+      then:
+        - service: text.set_value
+          target:
+            entity_id: text.xiaomi_l05b_1935_play_text
+          data:
+            value: 电视还开着，请记得关闭
+    - if:
+        - condition: template
+          value_template: "{{ states('climate.kong_diao_0601') not in ['off', 'unavailable', 'unknown', ''] }}"
+      then:
+        - if:
+            - condition: template
+              value_template: "{{ states('device_tracker.xiao_mi_shou_ji_ha') not in ['unknown', 'unavailable', ''] }}"
+          then:
+            - service: notify.xiao_mi_shou_ji_ha
+              data:
+                title: 空调未关
+                message: 晚上 23:30 空调还开着，请确认是否需要关闭
