@@ -99,7 +99,7 @@
            or (trigger.to_state is defined and trigger.to_state and '晚安' in trigger.to_state.state) }}
     - condition: template
       value_template: >-
-        {% set lt = state_attr('automation.goodnight_mode', 'last_triggered') %}
+        {% set lt = state_attr('automation.wan_an_mo_shi', 'last_triggered') %}
         {{ lt is none or (now() - lt).total_seconds() > 600 }}
   action:
     - service: media_player.turn_off
@@ -205,7 +205,7 @@
       value_template: "{{ trigger.from_state is not none and trigger.from_state.state == 'not_home' }}"
     - condition: template
       value_template: >-
-        {% set lt = state_attr('automation.presence_return_home', 'last_triggered') %}
+        {% set lt = state_attr('automation.shou_ji_hui_jia_huan_ying_bo_bao', 'last_triggered') %}
         {{ lt is none or (now() - lt).total_seconds() > 300 }}
   action:
     - service: text.set_value
@@ -333,7 +333,7 @@
                 or '室内多少度' in trigger.to_state.state) }}
     - condition: template
       value_template: >-
-        {% set lt = state_attr('automation.voice_temp_report', 'last_triggered') %}
+        {% set lt = state_attr('automation.yu_yin_bao_wen_du', 'last_triggered') %}
         {{ lt is none or (now() - lt).total_seconds() > 300 }}
   action:
     - service: text.set_value
@@ -361,7 +361,7 @@
            and ('多久' in trigger.to_state.state or '多长' in trigger.to_state.state or '好了' in trigger.to_state.state) }}
     - condition: template
       value_template: >-
-        {% set lt = state_attr('automation.voice_washer_status', 'last_triggered') %}
+        {% set lt = state_attr('automation.yu_yin_cha_xi_yi_ji', 'last_triggered') %}
         {{ lt is none or (now() - lt).total_seconds() > 300 }}
   action:
     - service: text.set_value
@@ -409,3 +409,55 @@
               data:
                 title: 空调未关
                 message: 晚上 23:30 空调还开着，请确认是否需要关闭
+# ================= AI 语音助手（DeepSeek 对话桥，待 API key 激活） =================
+
+- id: ai_voice_bridge
+  alias: AI 语音助手
+  description: 捕获小爱听不懂的非设备指令，交给 DeepSeek 回答并播报；已有语音命令不重复处理
+  mode: queued
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: sensor.xiaomi_l05b_1935_conversation
+  condition:
+    - condition: template
+      value_template: >-
+        {% set q = trigger.to_state.state if trigger.to_state is defined and trigger.to_state else '' %}
+        {% set known = ['晚安', '我出门了', '我走了', '我去上班了', '我上班去了', '我回来了', '我到家了', '我下班了', '报告温度', '温度多少', '现在多少度', '室内多少度', '打开洗衣机', '关闭洗衣机', '全屋关空调', '打开空调', '关闭空调'] %}
+        {{ q | length > 1
+           and not ('洗衣机' in q and ('多久' in q or '多长' in q or '好了' in q))
+           and (known | select('in', q) | list | length) == 0 }}
+  action:
+    - variables:
+        cid: "{{ states('input_text.ai_conversation_id') }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ cid not in ['', 'unknown', 'unavailable', 'none', 'None'] }}"
+          sequence:
+            - service: conversation.process
+              data:
+                agent_id: conversation.deepseek
+                text: "{{ trigger.to_state.state }}"
+                conversation_id: "{{ cid }}"
+              response_variable: ai_reply
+      default:
+        - service: conversation.process
+          data:
+            agent_id: conversation.deepseek
+            text: "{{ trigger.to_state.state }}"
+          response_variable: ai_reply
+    - service: input_text.set_value
+      target:
+        entity_id: input_text.ai_conversation_id
+      data:
+        value: "{{ ai_reply.conversation_id | default('', true) }}"
+    - service: text.set_value
+      target:
+        entity_id: text.xiaomi_l05b_1935_play_text
+      data:
+        value: >-
+          {% set resp = ai_reply.response %}
+          {{ resp.speech.plain.speech if resp.speech else resp.response }}
+          {{ resp.speech.plain.speech if resp.speech else resp.response }}
+          {{ resp.speech.plain.speech if resp.speech else resp.response }}

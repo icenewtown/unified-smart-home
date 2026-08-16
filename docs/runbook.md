@@ -128,6 +128,14 @@ bash scripts/install-hacs.sh
 - 语音离家/回家：conversation 传感器含“我出门了/我去上班了”→ 全屋关空调 + 关电视；含“我回来了/我到家了”→ 欢迎播报；5 分钟内不重复。
 - conversation 传感器每 5 秒轮询小米云对话记录，语音触发约 5 秒延迟；关键词误触发可修改各自动化的 condition。
 
+AI 语音助手（deepseek_conversation 集成，v1.6.0）：
+
+- 官方 OpenAI Conversation 集成不支持自定义 API 地址（api.openai.com 大陆不可达），故使用社区 DeepSeek 集成（leofleischmann/Homeassistant-Deepseek-Integration），已手动装入 `custom_components/deepseek_conversation` 并预装依赖（openai、voluptuous-openapi、h2）。
+- 配置条目需在 `.storage/core.config_entries` 手工添加（version=2，data 含 api_key/base_url/chat_model，options 含 llm_hass_api: [assist] 与自定义中文 prompt），激活后重启。
+- 桥接自动化 `ai_voice_bridge`：conversation 传感器 → `conversation.process`（agent_id=conversation.deepseek）→ `play_text` 播报；已有设备指令走原自动化/巴法云，不重复处理；`input_text.ai_conversation_id` 保存会话 ID 支持多轮。
+- 限制：延迟约 5~15 秒；小爱会先原生应答（可用训练计划静默缓解）；回答设为简短风格利于播报。
+- 注意：HA 自动化实体 ID 由“别名”的拼音生成（如“AI 语音助手”→ automation.ai_yu_yin_zhu_shou），自动化内部引用 last_triggered 等属性时必须用别名拼音 ID，不能用 YAML 里的英文 id。
+
 第一批扩展（2026-08-14 上线）：
 
 - 手机围栏：`device_tracker.xiao_mi_shou_ji_ha` 离开家区域 → 全屋关空调+关电视；进入家区域 → 欢迎播报。注意：目前仅以你的手机为判断，爸妈在家时你出门会触发；后续把爸妈手机接入 HA 后应改为全员离家才触发。
