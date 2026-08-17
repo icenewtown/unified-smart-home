@@ -132,7 +132,7 @@ AI 语音助手（deepseek_conversation 集成，v1.6.0）：
 
 - 官方 OpenAI Conversation 集成不支持自定义 API 地址（api.openai.com 大陆不可达），故使用社区 DeepSeek 集成（leofleischmann/Homeassistant-Deepseek-Integration），已手动装入 `custom_components/deepseek_conversation` 并预装依赖（openai、voluptuous-openapi、h2）。
 - 配置条目需在 `.storage/core.config_entries` 手工添加（version=2，data 含 api_key/base_url/chat_model，options 含 llm_hass_api: [assist] 与自定义中文 prompt），激活后重启。
-- 桥接自动化 `ai_voice_bridge`：conversation 传感器 → `conversation.process`（agent_id=conversation.deepseek）→ `play_text` 播报；已有设备指令走原自动化/巴法云，不重复处理；`input_text.ai_conversation_id` 保存会话 ID 支持多轮。
+- 桥接自动化 `ai_voice_bridge`：监听 conversation 传感器的查询与 `answers` 属性；仅当小爱回答失败（含“正在学习中/没听懂”等失败关键词）时才调用 `conversation.process`（agent_id=conversation.deepseek）→ `play_text` 播报；已有设备指令走原自动化/巴法云，不重复处理；30 秒冷却防重复；`input_text.ai_conversation_id` 保存会话 ID 支持多轮。
 - 限制：延迟约 5~15 秒；小爱会先原生应答（可用训练计划静默缓解）；回答设为简短风格利于播报。
 - 注意：HA 自动化实体 ID 由“别名”的拼音生成（如“AI 语音助手”→ automation.ai_yu_yin_zhu_shou），自动化内部引用 last_triggered 等属性时必须用别名拼音 ID，不能用 YAML 里的英文 id。
 

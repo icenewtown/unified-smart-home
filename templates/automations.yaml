@@ -413,23 +413,41 @@
 
 - id: ai_voice_bridge
   alias: AI 语音助手
-  description: 捕获小爱听不懂的非设备指令，交给 DeepSeek 回答并播报；已有语音命令不重复处理
+  description: 小爱回答不上来（如“正在学习中/没听懂”）时，由 DeepSeek 兜底回答并播报；已有语音命令不重复处理；30 秒内只响应一次
   mode: queued
   max_exceeded: silent
   trigger:
     - platform: state
       entity_id: sensor.xiaomi_l05b_1935_conversation
+    - platform: state
+      entity_id: sensor.xiaomi_l05b_1935_conversation
+      attribute: answers
   condition:
     - condition: template
       value_template: >-
-        {% set q = trigger.to_state.state if trigger.to_state is defined and trigger.to_state else '' %}
+        {% set q = states('sensor.xiaomi_l05b_1935_conversation') %}
+        {% set ans = state_attr('sensor.xiaomi_l05b_1935_conversation', 'answers') or [] %}
+        {% set texts = [] %}
+        {% for a in ans if a is mapping %}
+          {% set tts = a.get('tts') %}
+          {% if tts is mapping and tts.get('text') %}{% set texts = texts + [tts.get('text')] %}{% endif %}
+        {% endfor %}
+        {% set atext = texts | join(' ') %}
+        {% set failwords = ['正在学习', '学习中', '还没学会', '没有相关技能', '没听懂', '没听清', '听不懂', '无法回答', '不会这个', '换个方式', '不太明白', '还在学习', '抱歉', '暂时无法', '没能理解'] %}
         {% set known = ['晚安', '我出门了', '我走了', '我去上班了', '我上班去了', '我回来了', '我到家了', '我下班了', '报告温度', '温度多少', '现在多少度', '室内多少度', '打开洗衣机', '关闭洗衣机', '全屋关空调', '打开空调', '关闭空调'] %}
         {{ q | length > 1
            and not ('洗衣机' in q and ('多久' in q or '多长' in q or '好了' in q))
-           and (known | select('in', q) | list | length) == 0 }}
+           and (known | select('in', q) | list | length) == 0
+           and atext != ''
+           and (failwords | select('in', atext) | list | length) > 0 }}
+    - condition: template
+      value_template: >-
+        {% set lt = state_attr('automation.ai_yu_yin_zhu_shou', 'last_triggered') %}
+        {{ lt is none or (now() - lt).total_seconds() > 30 }}
   action:
     - variables:
         cid: "{{ states('input_text.ai_conversation_id') }}"
+        question: "{{ states('sensor.xiaomi_l05b_1935_conversation') }}"
     - choose:
         - conditions:
             - condition: template
@@ -438,14 +456,14 @@
             - service: conversation.process
               data:
                 agent_id: conversation.deepseek
-                text: "{{ trigger.to_state.state }}"
+                text: "{{ question }}"
                 conversation_id: "{{ cid }}"
               response_variable: ai_reply
       default:
         - service: conversation.process
           data:
             agent_id: conversation.deepseek
-            text: "{{ trigger.to_state.state }}"
+            text: "{{ question }}"
           response_variable: ai_reply
     - service: input_text.set_value
       target:
@@ -458,6 +476,5 @@
       data:
         value: >-
           {% set resp = ai_reply.response %}
-          {{ resp.speech.plain.speech if resp.speech else resp.response }}
           {{ resp.speech.plain.speech if resp.speech else resp.response }}
           {{ resp.speech.plain.speech if resp.speech else resp.response }}

@@ -1,5 +1,8 @@
 # 更新记录
 
+## v0.10（2026-08-17）
+- AI 语音助手改为“小爱失败才兜底”：监听 conversation 传感器 answers 属性，小爱回答含“正在学习中/没听懂/没有相关技能”等失败关键词时，DeepSeek 才回答并播报；恢复 30 秒冷却防止重复回答。
+
 ## v0.9（2026-08-15）
 - 新增 AI 语音助手（DeepSeek 对话桥，待 API key 激活）：conversation 传感器捕获非设备指令 → DeepSeek 回答 → 小爱播报；支持多轮上下文（input_text 存会话 ID）与 HA 设备工具调用。
 - 安装 deepseek_conversation 自定义集成（v1.6.0，官方 OpenAI 集成不支持自定义地址，故采用社区专用集成）。
