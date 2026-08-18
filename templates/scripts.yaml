@@ -3,4 +3,6 @@ shutdown_all_ac:
   sequence:
     - service: climate.turn_off
       target:
-        entity_id: climate.kong_diao_0601
+        entity_id:
+          - climate.kong_diao_0601
+          - climate.wo_shi_de_ge_li_kong_diao

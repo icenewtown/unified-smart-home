@@ -172,6 +172,156 @@ views:
           perform_action: script.shutdown_all_ac
       - type: markdown
         content: |-
+          ### 卧室空调
+      - type: thermostat
+        entity: climate.wo_shi_de_ge_li_kong_diao
+        name: 卧室空调
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: 打开卧室空调
+            icon: mdi:power
+            styles:
+              card:
+                - height: 120px
+                - background: "#e8f5e9"
+              icon:
+                - width: 54px
+                - color: green
+              name:
+                - font-size: 26px
+                - font-weight: bold
+            tap_action:
+              action: perform-action
+              perform_action: climate.turn_on
+              target:
+                entity_id: climate.wo_shi_de_ge_li_kong_diao
+          - type: button
+            name: 关闭卧室空调
+            icon: mdi:power-off
+            styles:
+              card:
+                - height: 120px
+                - background: "#ffebee"
+              icon:
+                - width: 54px
+                - color: red
+              name:
+                - font-size: 26px
+                - font-weight: bold
+            tap_action:
+              action: perform-action
+              perform_action: climate.turn_off
+              target:
+                entity_id: climate.wo_shi_de_ge_li_kong_diao
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: 26度
+            icon: mdi:thermometer
+            styles:
+              card:
+                - height: 100px
+              icon:
+                - width: 44px
+              name:
+                - font-size: 24px
+            tap_action:
+              action: perform-action
+              perform_action: climate.set_temperature
+              target:
+                entity_id: climate.wo_shi_de_ge_li_kong_diao
+              data:
+                temperature: 26
+          - type: button
+            name: 24度
+            icon: mdi:thermometer
+            styles:
+              card:
+                - height: 100px
+              icon:
+                - width: 44px
+              name:
+                - font-size: 24px
+            tap_action:
+              action: perform-action
+              perform_action: climate.set_temperature
+              target:
+                entity_id: climate.wo_shi_de_ge_li_kong_diao
+              data:
+                temperature: 24
+          - type: button
+            name: 28度
+            icon: mdi:thermometer
+            styles:
+              card:
+                - height: 100px
+              icon:
+                - width: 44px
+              name:
+                - font-size: 24px
+            tap_action:
+              action: perform-action
+              perform_action: climate.set_temperature
+              target:
+                entity_id: climate.wo_shi_de_ge_li_kong_diao
+              data:
+                temperature: 28
+      - type: horizontal-stack
+        cards:
+          - type: button
+            name: 制冷
+            icon: mdi:snowflake
+            styles:
+              card:
+                - height: 90px
+              icon:
+                - width: 40px
+              name:
+                - font-size: 22px
+            tap_action:
+              action: perform-action
+              perform_action: climate.set_hvac_mode
+              target:
+                entity_id: climate.wo_shi_de_ge_li_kong_diao
+              data:
+                hvac_mode: cool
+          - type: button
+            name: 制热
+            icon: mdi:fire
+            styles:
+              card:
+                - height: 90px
+              icon:
+                - width: 40px
+              name:
+                - font-size: 22px
+            tap_action:
+              action: perform-action
+              perform_action: climate.set_hvac_mode
+              target:
+                entity_id: climate.wo_shi_de_ge_li_kong_diao
+              data:
+                hvac_mode: heat
+          - type: button
+            name: 自动
+            icon: mdi:autorenew
+            styles:
+              card:
+                - height: 90px
+              icon:
+                - width: 40px
+              name:
+                - font-size: 22px
+            tap_action:
+              action: perform-action
+              perform_action: climate.set_hvac_mode
+              target:
+                entity_id: climate.wo_shi_de_ge_li_kong_diao
+              data:
+                hvac_mode: auto
+      - type: markdown
+        content: |-
           ### 洗衣机
       - type: horizontal-stack
         cards:

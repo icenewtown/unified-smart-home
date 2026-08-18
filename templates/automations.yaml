@@ -399,7 +399,9 @@
             value: 电视还开着，请记得关闭
     - if:
         - condition: template
-          value_template: "{{ states('climate.kong_diao_0601') not in ['off', 'unavailable', 'unknown', ''] }}"
+          value_template: >-
+            {{ (states('climate.kong_diao_0601') not in ['off', 'unavailable', 'unknown', ''])
+               or (states('climate.wo_shi_de_ge_li_kong_diao') not in ['off', 'unavailable', 'unknown', '']) }}
       then:
         - if:
             - condition: template
@@ -408,7 +410,11 @@
             - service: notify.xiao_mi_shou_ji_ha
               data:
                 title: 空调未关
-                message: 晚上 23:30 空调还开着，请确认是否需要关闭
+                message: >-
+                  {% set on = [] %}
+                  {% if states('climate.kong_diao_0601') not in ['off', 'unavailable', 'unknown', ''] %}{% set on = on + ['客厅'] %}{% endif %}
+                  {% if states('climate.wo_shi_de_ge_li_kong_diao') not in ['off', 'unavailable', 'unknown', ''] %}{% set on = on + ['卧室'] %}{% endif %}
+                  晚上 23:30 {{ on | join('、') }}空调还开着，请确认是否需要关闭
 # ================= AI 语音助手（DeepSeek 对话桥，待 API key 激活） =================
 
 - id: ai_voice_bridge

@@ -25,6 +25,20 @@ views:
             name: 健康模式
           - entity: input_boolean.ac_auto_control
             name: 自动温控
+      - type: thermostat
+        entity: climate.wo_shi_de_ge_li_kong_diao
+        name: 卧室格力空调
+      - type: entities
+        title: 卧室空调功能
+        entities:
+          - entity: switch.wo_shi_de_ge_li_kong_diao
+            name: 面板灯
+          - entity: switch.wo_shi_de_ge_li_kong_diao_2
+            name: 静音
+          - entity: switch.wo_shi_de_ge_li_kong_diao_3
+            name: 新风
+          - entity: switch.wo_shi_de_ge_li_kong_diao_4
+            name: XFan 干燥
       - type: button
         entity: script.shutdown_all_ac
         name: 全屋关空调
