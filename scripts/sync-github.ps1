@@ -58,18 +58,14 @@ try {
     New-Item -ItemType Directory -Path (Join-Path $PublishGit 'config') -Force -ErrorAction Stop | Out-Null
     Copy-Item -LiteralPath (Join-Path $SourceRoot 'config\.gitkeep') -Destination (Join-Path $PublishGit 'config\.gitkeep') -Force -ErrorAction Stop
 
-    $patterns = @('ghp_[A-Za-z0-9]+','github_pat_[A-Za-z0-9_]+','gho_[A-Za-z0-9]+')
     $PatternsFile = Join-Path $PublishRoot 'sensitive-patterns.txt'
-    if (Test-Path -LiteralPath $PatternsFile) {
-        $custom = Get-Content -LiteralPath $PatternsFile |
-            Where-Object { $_.Trim() -and -not $_.Trim().StartsWith('#') }
-        if ($custom) { $patterns = @($patterns + $custom) }
+    if (-not (Test-Path -LiteralPath $PatternsFile)) {
+        Write-Log 'ERROR: sensitive-patterns.txt is required but missing'
+        exit 1
     }
-    $hits = Get-ChildItem -LiteralPath $PublishGit -Recurse -File -Force |
-        Where-Object { $_.FullName -notmatch '\\\.git\\' -and $_.Name -ne 'sync-github.ps1' } |
-        Select-String -Pattern $patterns -ErrorAction SilentlyContinue
-    if ($hits) {
-        Write-Log ('ABORT: sensitive content detected at {0}:{1}' -f $hits[0].Path, $hits[0].LineNumber)
+    & (Join-Path $SourceRoot 'scripts\test-public-release.ps1') -TargetRoot $PublishGit -PatternsFile $PatternsFile -SkipCompose
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log 'ERROR: publish validation failed'
         exit 1
     }
 

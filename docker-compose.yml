@@ -2,7 +2,10 @@ services:
   homeassistant:
     image: ghcr.io/home-assistant/home-assistant:stable
     container_name: homeassistant
+    init: true
     restart: always
+    security_opt:
+      - no-new-privileges:true
     ports:
       # 左侧为宿主机端口；如需自定义端口只改左侧，并同步修改阿里云安全组
       - "8123:8123"

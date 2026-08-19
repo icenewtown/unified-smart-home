@@ -20,3 +20,6 @@ Thumbs.db
 
 # 本地账号信息（不入库）
 accounts.private.md
+
+# 本机发布扫描规则（含服务器 IP、账号、设备 ID 等；绝不入库）
+sensitive-patterns.txt

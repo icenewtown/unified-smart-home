@@ -1,5 +1,9 @@
 # 更新记录
 
+## v0.13（2026-08-19）
+- 发布安全加固：新增 scripts/test-public-release.ps1；自动同步必须读取本机敏感规则并扫描令牌、私钥、云 API Key 与自定义私有标识，规则缺失即中止发布。
+- 访问安全加固：新增 Tailscale / HTTPS 远程访问方案；Compose 增加 init 与 no-new-privileges 容器约束。
+
 ## v0.12（2026-08-18）
 - 修复巴法云“设置失败”：api.bemfa.com 频繁 504/超时导致集成启动失败。给主题拉取加重试（http.py），并把启动改为先连 MQTT、主题拉取后台自愈（service.py），重启后 1～3 分钟自动恢复同步。
 

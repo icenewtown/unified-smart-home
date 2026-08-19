@@ -175,3 +175,10 @@ cd /opt/smart_home && sudo docker compose up -d    # 启动
 - secrets、HA 配置目录禁止提交 git（`.gitignore` 已配置）。
 - 可选加固：服务器与手机都装 Tailscale，安全组不放行 8123，通过 Tailscale 内网 IP 访问。
 
+
+## 14. 公开发布与远程访问安全
+
+- 不要把高位端口当作安全措施；正式访问使用 Tailscale 或 HTTPS，完整切换步骤见 [安全远程访问方案](secure-remote-access.md)。
+- 发布前执行：powershell -ExecutionPolicy Bypass -File scripts/test-public-release.ps1 -TargetRoot .
+- 该校验依赖本机 sensitive-patterns.txt，保存服务器 IP、账号、设备 ID 等私有扫描规则；文件不入库且缺失即失败。
+- HACS 镜像、GitHub 代理和社区集成均属于第三方供应链。生产环境先完成 HA 备份，人工确认来源与版本，再执行远程安装脚本。

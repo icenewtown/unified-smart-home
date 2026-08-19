@@ -88,3 +88,7 @@ flowchart LR
 - 凭据、HA 运行时配置不入库；敏感信息见 `.gitignore`。
 - 项目文件通过 git 回退；HA 运行时数据通过 HA 自动备份恢复。
 - 免费阿里云实例若为限时试用，到期前按 [docs/runbook.md](docs/runbook.md) 第 11 节备份并迁移。
+
+## 生产访问安全
+
+首次初始化可临时使用公网 8123；正式使用不建议长期暴露明文 HTTP。优先按 [安全远程访问方案](docs/secure-remote-access.md) 使用 Tailscale，或在拥有域名时配置 HTTPS 反向代理。发布副本会在同步前运行 scripts/test-public-release.ps1，且本机 sensitive-patterns.txt 缺失时自动中止发布。
