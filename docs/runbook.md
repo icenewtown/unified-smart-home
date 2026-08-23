@@ -129,13 +129,14 @@ bash scripts/install-hacs.sh
 - 语音离家/回家：conversation 传感器含“我出门了/我去上班了”→ 全屋关空调 + 关电视；含“我回来了/我到家了”→ 欢迎播报；5 分钟内不重复。
 - conversation 传感器每 5 秒轮询小米云对话记录，语音触发约 5 秒延迟；关键词误触发可修改各自动化的 condition。
 
-AI 语音助手（deepseek_conversation 集成，v1.6.0）：
+AI 家庭管家（`deepseek_conversation` 集成）：
 
-- 官方 OpenAI Conversation 集成不支持自定义 API 地址（api.openai.com 大陆不可达），故使用社区 DeepSeek 集成（leofleischmann/Homeassistant-Deepseek-Integration），已手动装入 `custom_components/deepseek_conversation` 并预装依赖（openai、voluptuous-openapi、h2）。
-- 配置条目需在 `.storage/core.config_entries` 手工添加（version=2，data 含 api_key/base_url/chat_model，options 含 llm_hass_api: [assist] 与自定义中文 prompt），激活后重启。
-- 桥接自动化 `ai_voice_bridge`：监听 conversation 传感器的查询与 `answers` 属性；仅当小爱回答失败（含“正在学习中/没听懂”等失败关键词）时才调用 `conversation.process`（agent_id=conversation.deepseek）→ `play_text` 播报；已有设备指令走原自动化/巴法云，不重复处理；30 秒冷却防重复；`input_text.ai_conversation_id` 保存会话 ID 支持多轮。
-- 限制：延迟约 5~15 秒；小爱会先原生应答（可用训练计划静默缓解）；回答设为简短风格利于播报。
-- 注意：HA 自动化实体 ID 由“别名”的拼音生成（如“AI 语音助手”→ automation.ai_yu_yin_zhu_shou），自动化内部引用 last_triggered 等属性时必须用别名拼音 ID，不能用 YAML 里的英文 id。
+- 小爱原生回答失败时，`ai_voice_bridge` 才调用 `conversation.deepseek`。固定的离家、回家、晚安、报温度、洗衣机状态和所有控制类指令均被排除，继续由原自动化处理。
+- 自动化仅向模型发送当前空调、洗衣机、电视、温湿度的中文状态摘要和本次问题；不发送地址、坐标、账号、令牌、设备 ID、历史轨迹或原始对话记录。
+- DeepSeek 配置必须关闭 `include_user_context`，并将 `llm_hass_api` 设为空列表。模型没有 HA 工具权限，不能发现实体或直接控制家电；控制请求只会得到“确认后由家庭自动化执行”的提示。
+- 回复仅通过小爱播报，最多 120 字；调用失败、超时或返回错误时静默降级，不播报错误内容。会话在 10 分钟内可连续追问，超过时限自动建立新会话。
+- 在 HA 的 DeepSeek Conversation 配置中填入 API Key 后重启集成即可启用。密钥只能保存在 HA 配置条目中，不能写入仓库、模板、日志或截图。
+- 语音链路一般有约 5–15 秒延迟。启用后先按 `docs/test-plan.md` 的“AI 家庭管家”清单逐项验证。
 
 第一批扩展（2026-08-14 上线）：
 

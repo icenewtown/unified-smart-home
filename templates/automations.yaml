@@ -415,12 +415,12 @@
                   {% if states('climate.kong_diao_0601') not in ['off', 'unavailable', 'unknown', ''] %}{% set on = on + ['客厅'] %}{% endif %}
                   {% if states('climate.wo_shi_de_ge_li_kong_diao') not in ['off', 'unavailable', 'unknown', ''] %}{% set on = on + ['卧室'] %}{% endif %}
                   晚上 23:30 {{ on | join('、') }}空调还开着，请确认是否需要关闭
-# ================= AI 语音助手（DeepSeek 对话桥，待 API key 激活） =================
+# ================= AI 家庭管家（DeepSeek 对话桥） =================
 
 - id: ai_voice_bridge
   alias: AI 语音助手
-  description: 小爱回答不上来（如“正在学习中/没听懂”）时，由 DeepSeek 兜底回答并播报；已有语音命令不重复处理；30 秒内只响应一次
-  mode: queued
+  description: 小爱回答失败时才由 DeepSeek 回答家庭状态；仅发送最小化设备摘要，模型无 HA 工具权限且不能直接控制设备
+  mode: single
   max_exceeded: silent
   trigger:
     - platform: state
@@ -441,9 +441,11 @@
         {% set atext = texts | join(' ') %}
         {% set failwords = ['正在学习', '学习中', '还没学会', '没有相关技能', '没听懂', '没听清', '听不懂', '无法回答', '不会这个', '换个方式', '不太明白', '还在学习', '抱歉', '暂时无法', '没能理解'] %}
         {% set known = ['晚安', '我出门了', '我走了', '我去上班了', '我上班去了', '我回来了', '我到家了', '我下班了', '报告温度', '温度多少', '现在多少度', '室内多少度', '打开洗衣机', '关闭洗衣机', '全屋关空调', '打开空调', '关闭空调'] %}
+        {% set control_words = ['打开', '关闭', '开启', '关掉', '调到', '设为', '设置', '升高', '降低', '制冷', '制热', '除湿', '风速', '暂停', '启动', '开始', '播放', '停止'] %}
         {{ q | length > 1
            and not ('洗衣机' in q and ('多久' in q or '多长' in q or '好了' in q))
            and (known | select('in', q) | list | length) == 0
+           and (control_words | select('in', q) | list | length) == 0
            and atext != ''
            and (failwords | select('in', atext) | list | length) > 0 }}
     - condition: template
@@ -452,8 +454,22 @@
         {{ lt is none or (now() - lt).total_seconds() > 30 }}
   action:
     - variables:
-        cid: "{{ states('input_text.ai_conversation_id') }}"
+        cid: >-
+          {% set last = state_attr('automation.ai_yu_yin_zhu_shou', 'last_triggered') %}
+          {% set saved = states('input_text.ai_conversation_id') %}
+          {{ saved if last is not none and (now() - last).total_seconds() <= 600 else '' }}
         question: "{{ states('sensor.xiaomi_l05b_1935_conversation') }}"
+        device_summary: >-
+          {% set labels = {'off':'关闭', 'on':'开启', 'cool':'制冷', 'heat':'制热', 'dry':'除湿', 'fan_only':'送风', 'auto':'自动', 'start':'运行中', 'pause':'已暂停', 'idle':'空闲'} %}
+          {% set living = states('climate.kong_diao_0601') %}
+          {% set bedroom = states('climate.wo_shi_de_ge_li_kong_diao') %}
+          {% set washer = states('sensor.gun_tong_xi_yi_ji_yun_xing_zhuang_tai') %}
+          {% set tv = states('media_player.xiaomi_v1_81fb_play_control') %}
+          {% set temp = states('sensor.miaomiaoce_t9_2479_temperature') %}
+          {% set humidity = states('sensor.miaomiaoce_t9_2479_humidity') %}
+          家庭设备状态（仅供回答，不能执行操作）：客厅空调 {{ labels.get(living, '暂时无法确认') if living not in ['unknown', 'unavailable', ''] else '暂时无法确认' }}；卧室空调 {{ labels.get(bedroom, '暂时无法确认') if bedroom not in ['unknown', 'unavailable', ''] else '暂时无法确认' }}；洗衣机 {{ labels.get(washer, '暂时无法确认') if washer not in ['unknown', 'unavailable', ''] else '暂时无法确认' }}；电视 {{ labels.get(tv, '暂时无法确认') if tv not in ['unknown', 'unavailable', ''] else '暂时无法确认' }}；室内温度 {{ temp ~ '度' if temp not in ['unknown', 'unavailable', ''] else '暂时无法确认' }}；室内湿度 {{ humidity ~ '%' if humidity not in ['unknown', 'unavailable', ''] else '暂时无法确认' }}。
+        ai_text: >-
+          {{ device_summary }} 请仅依据上述信息用简短中文回答；如果是在请求控制设备，请说明需要确认后由家庭自动化执行。用户问题：{{ question }}
     - choose:
         - conditions:
             - condition: template
@@ -462,25 +478,37 @@
             - service: conversation.process
               data:
                 agent_id: conversation.deepseek
-                text: "{{ question }}"
+                text: "{{ ai_text }}"
                 conversation_id: "{{ cid }}"
               response_variable: ai_reply
+              continue_on_error: true
       default:
         - service: conversation.process
           data:
             agent_id: conversation.deepseek
-            text: "{{ question }}"
+            text: "{{ ai_text }}"
           response_variable: ai_reply
+          continue_on_error: true
+    - variables:
+        ai_result: "{{ ai_reply | default({}, true) }}"
+        reply_text: >-
+          {% set response = ai_result.get('response', {}) if ai_result is mapping else {} %}
+          {% set speech = response.get('speech', {}) if response is mapping else {} %}
+          {% set plain = speech.get('plain', {}) if speech is mapping else {} %}
+          {{ '' if response.get('response_type', '') == 'error' else (plain.get('speech', '') if plain is mapping else '') }}
+        reply_cid: "{{ ai_result.get('conversation_id', '') if ai_result is mapping else '' }}"
     - service: input_text.set_value
       target:
         entity_id: input_text.ai_conversation_id
       data:
-        value: "{{ ai_reply.conversation_id | default('', true) }}"
-    - service: text.set_value
-      target:
-        entity_id: text.xiaomi_l05b_1935_play_text
-      data:
-        value: >-
-          {% set resp = ai_reply.response %}
-          {{ resp.speech.plain.speech if resp.speech else resp.response }}
-          {{ resp.speech.plain.speech if resp.speech else resp.response }}
+        value: "{{ reply_cid }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ reply_text | trim | length > 0 }}"
+          sequence:
+            - service: text.set_value
+              target:
+                entity_id: text.xiaomi_l05b_1935_play_text
+              data:
+                value: "{{ reply_text | striptags | trim | truncate(120, true, '') }}"
