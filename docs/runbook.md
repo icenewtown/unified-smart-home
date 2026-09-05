@@ -186,7 +186,7 @@ cd /opt/smart_home && sudo docker compose up -d    # 启动
 ## 12. 运行态审计与恢复（2026-09-05）
 
 - 已修复辅助实体定义：`washer_running` 与 `ac_auto_control` 必须是 `input_boolean`，不能放在 `input_text` 下；可使用 `templates/configuration-helpers.yaml` 作为无敏感信息的配置片段。
-- 已清理未再被 YAML 加载的旧手环提醒、默认主题自动化和旧文本辅助实体；手环、路由器实时数据、美的用电/用水统计、音箱状态开关等已确认无云端数据来源的实体已在注册表中持久禁用，不会在仪表盘制造“不可用”噪音。
+- 已清理未再被 YAML 加载的旧手环提醒、默认主题自动化和旧文本辅助实体；手环、路由器实时数据、美的用电/用水统计、音箱状态开关及无硬件数据来源的手机健康传感器已在注册表中持久禁用，不会在仪表盘制造“不可用”噪音。
 - 格力双空调、美的洗衣机、电视、巴法 MQTT 连接在审计时均有有效状态；备份、TTS、AI 任务和信息按钮的 `unknown` 状态属于无状态/未执行元数据，保留不处理。
 - 小爱对话传感器出现小米云授权失效时，不要只重启。进入 **设置 → 设备与服务 → Xiaomi Miot Auto → 重新配置/重新认证**，使用原小米账号完成密码、短信/验证码或验证码图片流程；成功后等待约 1 分钟，确认对话传感器持续更新且日志不再出现 `Unauthorized` 或 conversation 解析错误。
 - `xiaomi_miot` 仍有面向 2027 的弃用 API 警告，当前不影响运行；升级组件前先备份 `/opt/smart_home/config/custom_components/xiaomi_miot` 并进行配置检查。
