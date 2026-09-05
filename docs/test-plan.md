@@ -64,3 +64,10 @@
 - [ ] 请求控制设备时，确认 AI 仅提示需要确认，不改变任何设备状态。
 - [ ] 将任一状态实体临时设为不可用（或在开发者工具模拟）后，回答应为“暂时无法确认”，不得猜测。
 - [ ] 在 DeepSeek Conversation 选项中确认 `include_user_context` 已关闭、Home Assistant API 未选择；检查公开发布副本不含 API Key、地址、坐标或设备标识。
+## 运行态审计回归
+
+- [ ] `input_boolean.washer_running` 可在洗衣机运行/完成自动化中切换，且洗衣完成后恢复关闭。
+- [ ] `input_boolean.ac_auto_control` 可在仪表盘切换，空调温控自动化只在其开启时运行。
+- [ ] 手环、路由器与美的用电/用水统计等已知无云端数据来源实体保持禁用，不显示为活跃故障。
+- [ ] 小爱对话传感器在重新认证后持续更新；日志不再出现 Xiaomi `Unauthorized` 或 conversation 解析错误。
+- [ ] 格力双空调、美的洗衣机、电视、巴法 MQTT 连接均有有效状态；HA 配置检查通过。

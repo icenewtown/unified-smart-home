@@ -1,0 +1,15 @@
+# 将此段合并到 Home Assistant 的 configuration.yaml。
+# input_boolean 与 input_text 必须分开定义；自动化依赖前两个布尔开关。
+input_boolean:
+  washer_running:
+    name: 洗衣机运行中
+    icon: mdi:washing-machine
+  ac_auto_control:
+    name: 空调自动温控
+    icon: mdi:thermostat-auto
+    initial: on
+
+input_text:
+  ai_conversation_id:
+    name: AI 对话会话
+    max: 128
